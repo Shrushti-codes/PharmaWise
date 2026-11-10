@@ -117,6 +117,19 @@ export default function Home() {
      .catch((error) => {
       console.error("LowStock API error:",error);
      });
+     fetch("http://localhost:8080/api/alerts/near-expiry")
+     .then((response) => {
+      if(!response.ok){
+        throw new Error("Failed to fetch near expiry details");
+      }
+      return response.json();
+     })
+     .then((data: NearExpiryAlert[]) => {
+      setNearExpiryAlerts(data);
+     })
+     .catch((error)=>{
+      console.error("Near Expiry API error:",error);
+     });
      fetch("http://localhost:8080/api/alerts/expired")
      .then((response) => {
       if(!response.ok){
@@ -295,9 +308,10 @@ export default function Home() {
                 {nearExpiryAlerts.length === 0 ?(
                 <p>no-near expiry medicines</p>
                 ) : (
-                  nearExpiryAlerts.map((medicine) => (
-                    <p key={medicine.id} className="mt-2">
-                      {medicine.name} - Near Expiry {medicine.quantity}!
+                  nearExpiryAlerts.map((batch) => (
+                    <p key={batch.id} className="mt-2">
+                      {batch.medicine.name} - Batch: {batch.batchNumber} -
+                      Quantity: {batch.quantity} - Expiry:{batch.expiryDate}
                     </p>
                   ))
                 )}
@@ -309,9 +323,19 @@ export default function Home() {
               <h4 className="font-semibold text-red-800">
                 Expired Stock
               </h4>
-              <p className="mt-2 text-sm text-red-700">
-                No expired batches.
-              </p>
+              <div className= "mt-2 text-sm text-red -700">
+                {expiredBatch.length === 0 ? (
+                <p> No Expired Batches.</p>
+                ) : (
+                  expiredBatch.map((batch) => (
+                    <p key={batch.id} className ="mt-2">
+                      {batch.medicine.name}- Batch: {batch.batchNumber}-
+                      Quantity: {batch.quantity} - Expiry: {batch.expiryDate}
+                    </p>
+                  ))
+                )}
+              </div>
+                
             </div>
 
           </div>
