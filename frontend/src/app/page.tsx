@@ -182,12 +182,15 @@ export default function Home() {
   };
 
   const goToSection = (section: string) => {
-    setActiveSection(section);
+  setActiveSection(section);
+
+  setTimeout(() => {
     document.getElementById(section)?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
-  };
+  }, 100);
+};
 
   const handleAddMedicine = async () => {
     if (
@@ -469,7 +472,11 @@ export default function Home() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => goToSection(item.id)}
+              onClick={() =>
+  item.id === "stock"
+    ? openForm("stock")
+    : goToSection(item.id)
+}
               className={`w-full rounded-lg px-4 py-3 text-left transition ${
                 activeSection === item.id
                   ? "bg-teal-600 text-white"
