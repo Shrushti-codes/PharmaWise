@@ -4,6 +4,7 @@ package com.pharmawise;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.security.Principal;
 import org.springframework.transaction.annotation.Transactional;
 
 @RestController
@@ -20,12 +21,15 @@ public class StockController {
         this.batchRepository = batchRepository;
         this.medicineRepository = medicineRepository;
     }
-    
+
     @Transactional
     @PostMapping("/deduct/{medicineId}")
     public String deductStock(
             @PathVariable Long medicineId,
-            @RequestBody StockDeductionRequest request) {
+            @RequestBody StockDeductionRequest request,
+            Principal principal) {
+
+        String email = principal.getName();
 
         int requestedQuantity = request.getQuantity();
 
@@ -34,10 +38,18 @@ public class StockController {
                     "Requested quantity must be greater than zero");
         }
 
+        // Verify that this medicine belongs to the logged-in user
+        Medicine medicine = medicineRepository
+                .findByIdAndOwner_Email(medicineId, email)
+                .orElseThrow(() ->
+                        new RuntimeException("Medicine not found"));
+
+        // Fetch only this user's eligible batches in FEFO order
         List<MedicineBatch> batches =
                 batchRepository
-                        .findByMedicine_IdAndQuantityGreaterThanAndExpiryDateGreaterThanEqualOrderByExpiryDateAsc(
+                        .findByMedicine_IdAndOwner_EmailAndQuantityGreaterThanAndExpiryDateGreaterThanEqualOrderByExpiryDateAsc(
                                 medicineId,
+                                email,
                                 0,
                                 LocalDate.now()
                         );
@@ -56,6 +68,7 @@ public class StockController {
 
         int remainingQuantity = requestedQuantity;
 
+        // Deduct stock from earliest-expiring batches first
         for (MedicineBatch batch : batches) {
 
             if (remainingQuantity == 0) {
@@ -75,14 +88,10 @@ public class StockController {
             batchRepository.save(batch);
         }
 
-        // Recalculate total stock from all batches
+        // Recalculate only this user's medicine stock
         int totalQuantity =
-                batchRepository.getTotalQuantityByMedicineId(medicineId);
-
-        // Update medicine-level quantity
-        Medicine medicine = medicineRepository.findById(medicineId)
-                .orElseThrow(() ->
-                        new RuntimeException("Medicine not found"));
+                batchRepository.getTotalQuantityByMedicineIdAndOwner(
+                        medicineId, email);
 
         medicine.setQuantity(totalQuantity);
         medicineRepository.save(medicine);
@@ -90,4 +99,3 @@ public class StockController {
         return "Stock deducted successfully using FEFO!";
     }
 }
-

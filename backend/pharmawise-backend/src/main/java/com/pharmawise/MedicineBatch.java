@@ -1,3 +1,4 @@
+
 package com.pharmawise;
 
 import jakarta.persistence.*;
@@ -22,6 +23,10 @@ public class MedicineBatch {
     @ManyToOne
     @JoinColumn(name = "medicine_id", nullable = false)
     private Medicine medicine;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User owner;
 
     public MedicineBatch() {
     }
@@ -72,5 +77,13 @@ public class MedicineBatch {
 
     public void setMedicine(Medicine medicine) {
         this.medicine = medicine;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 }

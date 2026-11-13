@@ -1,10 +1,7 @@
 
 package com.pharmawise;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -18,6 +15,10 @@ public class Medicine {
     private double price;
     private int quantity;
     private LocalDate expiryDate;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User owner;
 
     public Medicine() {
     }
@@ -61,5 +62,12 @@ public class Medicine {
     public void setExpiryDate(LocalDate expiryDate) {
         this.expiryDate = expiryDate;
     }
-}
 
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+}

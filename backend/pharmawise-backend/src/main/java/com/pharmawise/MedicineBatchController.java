@@ -1,6 +1,8 @@
+
 package com.pharmawise;
 
 import org.springframework.web.bind.annotation.*;
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -9,39 +11,54 @@ public class MedicineBatchController {
 
     private final MedicineBatchRepository batchRepository;
     private final MedicineRepository medicineRepository;
+    private final UserRepository userRepository;
 
     public MedicineBatchController(
             MedicineBatchRepository batchRepository,
-            MedicineRepository medicineRepository) {
+            MedicineRepository medicineRepository,
+            UserRepository userRepository) {
 
         this.batchRepository = batchRepository;
         this.medicineRepository = medicineRepository;
+        this.userRepository = userRepository;
     }
 
+    // Get only the logged-in user's batches
     @GetMapping
-    public List<MedicineBatch> getAllBatches() {
-        return batchRepository.findAll();
+    public List<MedicineBatch> getAllBatches(Principal principal) {
+        return batchRepository.findAllByOwner_Email(principal.getName());
     }
 
+    // Add a batch only to the logged-in user's medicine
     @PostMapping("/medicine/{medicineId}")
-public MedicineBatch addBatch(
-        @PathVariable Long medicineId,
-        @RequestBody MedicineBatch batch) {
+    public MedicineBatch addBatch(
+            @PathVariable Long medicineId,
+            @RequestBody MedicineBatch batch,
+            Principal principal) {
 
-    Medicine medicine = medicineRepository.findById(medicineId)
-            .orElseThrow(() ->
-                    new RuntimeException("Medicine not found"));
+        String email = principal.getName();
 
-    batch.setMedicine(medicine);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    MedicineBatch savedBatch = batchRepository.save(batch);
+        Medicine medicine = medicineRepository
+                .findByIdAndOwner_Email(medicineId, email)
+                .orElseThrow(() ->
+                        new RuntimeException("Medicine not found"));
 
-    int totalQuantity =
-            batchRepository.getTotalQuantityByMedicineId(medicineId);
+        batch.setMedicine(medicine);
+        batch.setOwner(user);
 
-    medicine.setQuantity(totalQuantity);
-    medicineRepository.save(medicine);
+        MedicineBatch savedBatch = batchRepository.save(batch);
 
-    return savedBatch;
-}
+        // Synchronize medicine quantity with its batch total
+        int totalQuantity =
+                batchRepository.getTotalQuantityByMedicineIdAndOwner(
+                        medicineId, email);
+
+        medicine.setQuantity(totalQuantity);
+        medicineRepository.save(medicine);
+
+        return savedBatch;
+    }
 }
