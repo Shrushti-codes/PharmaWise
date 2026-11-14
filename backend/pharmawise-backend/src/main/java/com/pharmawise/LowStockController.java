@@ -1,6 +1,9 @@
+
 package com.pharmawise;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -15,8 +18,11 @@ public class LowStockController {
     }
 
     @GetMapping("/low-stock")
-    public List<Object[]> getLowStockMedicines() {
+    public List<Object[]> getLowStockMedicines(
+            Authentication authentication) {
 
-        return batchRepository.findLowStockMedicines(20);
+        String email = authentication.getName();
+
+        return batchRepository.findLowStockMedicinesForUser(20, email);
     }
 }

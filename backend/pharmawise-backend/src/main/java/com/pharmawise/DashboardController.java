@@ -1,6 +1,9 @@
+
 package com.pharmawise;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -20,28 +23,33 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    public Map<String, Object> getDashboardSummary() {
+    public Map<String, Object> getDashboardSummary(
+            Authentication authentication) {
 
-        long totalMedicines = medicineRepository.count();
+        String email = authentication.getName();
 
-        int totalStock = batchRepository.getTotalStock();
+        long totalMedicines =
+                medicineRepository.findAllByOwner_Email(email).size();
+
+        int totalStock =
+                batchRepository.getTotalStockForUser(email);
 
         int lowStockCount =
-                batchRepository.findLowStockMedicines(20).size();
+                batchRepository.findLowStockMedicinesForUser(20, email).size();
 
         LocalDate today = LocalDate.now();
         LocalDate next30Days = today.plusDays(30);
 
         int nearExpiryCount =
                 batchRepository
-                        .findByExpiryDateBetweenAndQuantityGreaterThanOrderByExpiryDateAsc(
-                                today, next30Days, 0)
+                        .findByOwner_EmailAndExpiryDateBetweenAndQuantityGreaterThanOrderByExpiryDateAsc(
+                                email, today, next30Days, 0)
                         .size();
 
         int expiredBatchCount =
                 batchRepository
-                        .findByExpiryDateBeforeAndQuantityGreaterThanOrderByExpiryDateAsc(
-                                today, 0)
+                        .findByOwner_EmailAndExpiryDateBeforeAndQuantityGreaterThanOrderByExpiryDateAsc(
+                                email, today, 0)
                         .size();
 
         return Map.of(

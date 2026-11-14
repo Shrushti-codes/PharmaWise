@@ -76,8 +76,8 @@ public class MedicineController {
         Medicine medicine = medicineRepository
                 .findByIdAndOwner_Email(id, principal.getName())
                 .orElseThrow(() -> new RuntimeException("Medicine not found"));
-
-        medicineBatchRepository.deleteByMedicine_Id(medicine.getId());
+    medicineBatchRepository.deleteByMedicine_IdAndOwner_Email(
+        medicine.getId(), principal.getName());
         medicineRepository.delete(medicine);
 
         return "Medicine and its batches deleted successfully!";

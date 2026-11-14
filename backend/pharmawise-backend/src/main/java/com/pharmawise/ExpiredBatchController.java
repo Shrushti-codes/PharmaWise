@@ -1,6 +1,9 @@
+
 package com.pharmawise;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,10 +19,14 @@ public class ExpiredBatchController {
     }
 
     @GetMapping("/expired")
-    public List<MedicineBatch> getExpiredBatches() {
+    public List<MedicineBatch> getExpiredBatches(
+            Authentication authentication) {
+
+        String email = authentication.getName();
 
         return batchRepository
-                .findByExpiryDateBeforeAndQuantityGreaterThanOrderByExpiryDateAsc(
+                .findByOwner_EmailAndExpiryDateBeforeAndQuantityGreaterThanOrderByExpiryDateAsc(
+                        email,
                         LocalDate.now(),
                         0
                 );
