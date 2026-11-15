@@ -157,7 +157,13 @@ export default function Home() {
     setSummary(summaryData);
     setMedicines(medicineData);
     setBatches(batchData);
-    setLowStockAlerts(lowStockData);
+    setLowStockAlerts(
+  lowStockData.map((item: [number, string, number]) => ({
+    id: item[0],
+    name: item[1],
+    quantity: item[2],
+  }))
+);
     setNearExpiryAlerts(nearExpiryData);
     setExpiredBatches(expiredData);
   }, []);
