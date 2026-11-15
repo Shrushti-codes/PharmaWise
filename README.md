@@ -193,3 +193,28 @@ The main objective of PharmaWise is to make pharmacy inventory management more e
 **PharmaWise – Smart Pharmacy Inventory Management System**
 
 Built as a full-stack project using Next.js, Java Spring Boot, and PostgreSQL.
+
+# Live Deployment
+
+Live Application: https://pharma-wise-five.vercel.app/
+
+# Deployment Architecture
+
+| Component | Technology | Hosting Platform |
+|---|---|---|
+| Frontend | Next.js, Tailwind CSS | Vercel |
+| Backend | Java, Spring Boot | Render |
+| Database | PostgreSQL | Neon |
+| Authentication | Spring Security, JWT | Render |
+
+# Deployment Configuration
+- Frontend deployed on Vercel.
+- Backend REST API deployed on Render.
+- PostgreSQL database hosted on Neon.
+- Frontend connected to backend using environment variables.
+- CORS configured to allow communication between the deployed frontend and backend.
+
+# Project Status
+Successfully deployed and accessible online.
+# Developed by
+Shrushti Thorat
